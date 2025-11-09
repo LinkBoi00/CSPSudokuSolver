@@ -1,3 +1,6 @@
+# Import GRID_SIZE from sudoku_problem
+from config import GRID_SIZE
+
 class SudokuCSP:
     def __init__(self, initial_sudoku, next_var_heuristic):
         """
@@ -34,8 +37,8 @@ class SudokuCSP:
         assignment -- an instance of a Sudoku representing the assignments to each entry in this CSP.
         """
 
-        for r in range(0, 9):
-            for c in range(0, 9):
+        for r in range(0, GRID_SIZE):
+            for c in range(0, GRID_SIZE):
                 entry = self.initial_sudoku.get_entry(r, c)
                 if entry != 0 and entry != assignment.get_entry(r, c):
                     raise ValueError("Assignment does not match initial state values.")
@@ -67,7 +70,7 @@ class SudokuCSP:
             raise ValueError("Variable position is already filled.")
         else:
             successors = []
-            for n in range(1, 10):
+            for n in range(1, GRID_SIZE + 1):
                 new_state = assignment.deep_copy()
                 new_state.set_element(r, c, n)
                 if new_state.is_valid():

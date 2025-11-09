@@ -1,3 +1,6 @@
+# Import GRID_SIZE from sudoku_problem
+from config import GRID_SIZE
+
 def backtracking_search(csp):
     """
     Initializes a backtracking search algorithm to solve the given CSP.
@@ -95,8 +98,8 @@ def mrv_next_var_heuristic(assignment):
 
     pos_list = []
     num_possible_list = []
-    for r in range(0, 9):
-        for c in range(0, 9):
+    for r in range(0, GRID_SIZE):
+        for c in range(0, GRID_SIZE):
             if assignment.get_entry(r, c) == 0:
                 pos = (r, c)
                 pos_list.append(pos)
@@ -118,8 +121,8 @@ def trivial_next_var_heuristic(assignment):
     assignment -- an instance of a Sudoku representing the assignments to each entry in this CSP.
     """
 
-    for r in range(9):
-        for c in range(9):
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE):
             if assignment.get_entry(r, c) == 0:
                 pos = (r, c)
                 return pos

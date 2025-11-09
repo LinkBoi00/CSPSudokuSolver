@@ -1,88 +1,60 @@
+import config
 import sudoku_CSP
 import sudoku_problem
 import search
 import time
 import sys
 
-easy_sudoku_state = [[0, 5, 3, 0, 0, 0, 7, 9, 0],
-                     [0, 0, 9, 7, 8, 2, 6, 0, 0],
-                     [0, 0, 0, 5, 0, 3, 0, 0, 0],
-                     [0, 0, 0, 4, 0, 6, 0, 0, 0],
-                     [0, 4, 0, 0, 0, 0, 0, 6, 0],
-                     [8, 0, 5, 1, 0, 9, 3, 0, 2],
-                     [0, 0, 8, 9, 3, 1, 4, 0, 0],
-                     [9, 0, 0, 0, 0, 0, 0, 0, 6],
-                     [0, 0, 4, 0, 0, 0, 8, 0, 0]]
+# Import global configuration
+from config import GRID_SIZE, SUBGRID_SIZE
 
-medium_sudoku_state = [[0, 0, 0, 0, 0, 0, 0, 9, 0],
-                       [0, 5, 0, 0, 0, 0, 2, 0, 1],
-                       [0, 0, 0, 0, 0, 7, 6, 0, 0],
-                       [0, 0, 0, 0, 4, 1, 5, 0, 0],
-                       [0, 0, 0, 6, 0, 0, 0, 0, 9],
-                       [0, 0, 6, 2, 0, 0, 4, 0, 7],
-                       [0, 7, 3, 1, 0, 6, 0, 0, 5],
-                       [9, 0, 0, 0, 0, 0, 0, 0, 2],
-                       [0, 4, 0, 0, 7, 9, 3, 8, 0]]
+# 4x4 Sudoku puzzles (0 represents empty cells)
+easy_sudoku_state = [[1, 0, 0, 2],
+                     [0, 0, 1, 0],
+                     [0, 1, 0, 0],
+                     [2, 0, 0, 1]]
 
-hard_sudoku_state = [[2, 0, 5, 1, 0, 0, 0, 0, 0],
-                     [0, 0, 0, 0, 0, 0, 1, 0, 0],
-                     [8, 0, 0, 0, 9, 0, 7, 2, 0],
-                     [7, 0, 1, 5, 2, 0, 0, 0, 8],
-                     [0, 0, 0, 0, 0, 0, 9, 0, 0],
-                     [4, 0, 6, 9, 1, 0, 0, 0, 3],
-                     [1, 0, 0, 0, 8, 0, 4, 6, 0],
-                     [0, 0, 0, 0, 0, 0, 5, 0, 0],
-                     [9, 0, 7, 4, 0, 0, 0, 0, 0]]
+medium_sudoku_state = [[0, 0, 0, 2],
+                       [0, 0, 1, 0],
+                       [0, 1, 0, 0],
+                       [2, 0, 0, 0]]
 
-worlds_hardest_sudoku_state = [[8, 0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 3, 6, 0, 0, 0, 0, 0],
-                               [0, 7, 0, 0, 9, 0, 2, 0, 0],
-                               [0, 5, 0, 0, 0, 7, 0, 0, 0],
-                               [0, 0, 0, 0, 4, 5, 7, 0, 0],
-                               [0, 0, 0, 1, 0, 0, 0, 3, 0],
-                               [0, 0, 1, 0, 0, 0, 0, 6, 8],
-                               [0, 0, 8, 5, 0, 0, 0, 1, 0],
-                               [0, 9, 0, 0, 0, 0, 4, 0, 0]]
+hard_sudoku_state = [[0, 0, 0, 0],
+                     [0, 0, 1, 0],
+                     [0, 1, 0, 0],
+                     [0, 0, 0, 0]]
 
-"""
-This sudoku is truly the most difficult by tree width.
-This sudoku has a tree width of 100,571 while in comparison the hardest sudoku created by a person
-has a tree width of just 2257.
-"""
-impossible_sudoku_state = [[0, 6, 1, 0, 0, 7, 0, 0, 3],
-                           [0, 9, 2, 0, 0, 3, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                           [0, 0, 8, 5, 3, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 0, 5, 0, 4],
-                           [5, 0, 0, 0, 0, 8, 0, 0, 0],
-                           [0, 4, 0, 0, 0, 0, 0, 0, 1],
-                           [0, 0, 0, 1, 6, 0, 8, 0, 0],
-                           [6, 0, 0, 0, 0, 0, 0, 0, 0]]
-
+# Custom 4x4 sudoky puzzle
+custom_sudoku_state = [[0, 0, 0, 0],
+                       [0, 0, 0, 3],
+                       [0, 0, 3, 0],
+                       [0, 3, 0, 0]]
 
 def parse_sudoku(sudoku_str):
     """
-    Parses a string into a representation of a sudoku state as a 9x9 list of integers.
+    Parses a string into a representation of a sudoku state as a GRID_SIZE x GRID_SIZE list of integers.
 
     Keyword arguments:
-    str -- a string consisting of 81 integers between 0 and 9 representing the values of the entries of a sudoku.
+    str -- a string consisting of GRID_SIZE^2 integers between 0 and GRID_SIZE representing the values of the entries of a sudoku.
     """
-    sudoku = [[0 for x in range(9)] for y in range(9)]
+    sudoku = [[0 for x in range(GRID_SIZE)] for y in range(GRID_SIZE)]
     counter = 0
+    total_cells = GRID_SIZE * GRID_SIZE
+    
     for char in sudoku_str:
-        if counter > 80:
+        if counter >= total_cells:
             break
 
         try:
             val = int(char)
-            row = counter // 9
-            col = counter % 9
+            row = counter // GRID_SIZE
+            col = counter % GRID_SIZE
             sudoku[row][col] = val
             counter += 1
         except ValueError:
             continue
 
-    if counter < 80:
+    if counter < total_cells - 1:
         raise ValueError("Not enough integer values in sudoku string input.")
     else:
         return sudoku
@@ -93,17 +65,17 @@ def print_initial_and_solution(init_state, sol_state):
     Prints the given initial and solution state of a sudoku side by side.
 
     Keyword arguments:
-    init_state -- a 9x9 list of lists of integers representing the starting state of the solution
-    sol_state -- a 9x9 list of lists of integers representing the solution state of the solution
+    init_state -- a GRID_SIZE x GRID_SIZE list of lists of integers representing the starting state of the solution
+    sol_state -- a GRID_SIZE x GRID_SIZE list of lists of integers representing the solution state of the solution
     """
-    output_string = "\nInitial state:             Solution state:\n"
-    for row in range(9):
-        for init_col in range(9):
+    output_string = "\nInitial state:       Solution state:\n"
+    for row in range(GRID_SIZE):
+        for init_col in range(GRID_SIZE):
             output_string += str(init_state[row][init_col]) + " "
 
-        output_string += " " * 9
+        output_string += " " * 5
 
-        for sol_col in range(9):
+        for sol_col in range(GRID_SIZE):
             output_string += str(sol_state[row][sol_col]) + " "
 
         output_string += "\n"
@@ -125,33 +97,31 @@ def main():
         $python main.py --h
 
     You can add the -sudoku or -s argument followed by easy, medium,
-    hard, hardest, or a the name of a .txt file in the same directory
+    hard, or a the name of a .txt file in the same directory
     to specify a sudoku to solve. The default sudoku is easy.
 
         $ python main.py -sudoku medium
         $ python main.py -s sudoku.txt
 
-    The easy, medium, hard, hardest, and impossible keywords correspond
-    to 5 different built in sudokus of varying difficulty that can be
-    used to solve.
+    The easy, medium, and hard keywords correspond to 3 different built in 
+    sudokus of varying difficulty that can be used to solve (size depends on GRID_SIZE).
 
-    If you use he file input option then the program will use the first 81
+    If you use the file input option then the program will use the first GRID_SIZE^2
     digits it finds in the .txt file as the values for the sudoku.
 
     In order to choose which next variable heuristic to use, the -next_var
-    or -nv tag can be added followed by either trivial, or lpv which
-    correspond to the trivial and least possible values heuristics.
-    The default heuristic is the LPV heuristic.
+    or -nv tag can be added followed by either trivial, or mrv which
+    correspond to the trivial and minimum remaining values heuristics.
+    The default heuristic is the MRV heuristic.
 
-        $ python main.py -next_var lvp
+        $ python main.py -next_var mrv
         $ python main.py -nv trivial"""
     sudoku_state = easy_sudoku_state
     next_var = search.mrv_next_var_heuristic
     sudoku_dict = {"easy": easy_sudoku_state,
                    "medium": medium_sudoku_state,
                    "hard": hard_sudoku_state,
-                   "hardest": worlds_hardest_sudoku_state,
-                   "impossible": impossible_sudoku_state}
+                   "custom": custom_sudoku_state}
     next_var_dict = {"trivial": search.trivial_next_var_heuristic,
                      "mrv": search.mrv_next_var_heuristic}
 
@@ -179,9 +149,9 @@ def main():
     initial_sudoku = sudoku_problem.Sudoku(sudoku_state)
     csp = sudoku_CSP.SudokuCSP(initial_sudoku, next_var_heuristic=next_var)
 
-    start = time.clock()
+    start = time.time()
     solution = search.backtracking_search(csp)
-    end = time.clock()
+    end = time.time()
 
     print_initial_and_solution(sudoku_state, solution.get_state())
 

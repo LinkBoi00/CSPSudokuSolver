@@ -1,5 +1,5 @@
 import search
-
+from config import GRID_SIZE, SUBGRID_SIZE
 
 class Sudoku:
     def __init__(self, sudoku_state, pos_vals=None):
@@ -7,8 +7,8 @@ class Sudoku:
         Initializes an instance of a Sudoku.
 
         Keyword arguments:
-        sudoku_state -- a 9 by 9 list of lists representing all of the values in a sudoku problem.
-        The entries in the list of lists may either be the numbers 1 to 9 representing the puzzle values at
+        sudoku_state -- a GRID_SIZE by GRID_SIZE list of lists representing all of the values in a sudoku problem.
+        The entries in the list of lists may either be the numbers 1 to GRID_SIZE representing the puzzle values at
         those positions, or 0 representing an empty entry.
 
         pos_vals -- optional argument representing the possible values matrix. If none is provided then one will
@@ -16,8 +16,8 @@ class Sudoku:
         """
 
         if pos_vals is None:
-            self.possible_values = [[[i for i in range(1, 10)] for n in range(9)] for z in range(9)]
-            self.sudoku_state = [[0 for x in range(9)] for y in range(9)]
+            self.possible_values = [[[i for i in range(1, GRID_SIZE + 1)] for n in range(GRID_SIZE)] for z in range(GRID_SIZE)]
+            self.sudoku_state = [[0 for x in range(GRID_SIZE)] for y in range(GRID_SIZE)]
 
             for r, row in enumerate(sudoku_state):
                 for c, entry in enumerate(row):
@@ -60,16 +60,16 @@ class Sudoku:
         Sets the value at the given row and column values to the given entry value.
 
         Keyword arguments:
-        row -- an integer from 0 to 8 representing the row of the desired entry.
-        col -- an integer from 0 to 8 representing the column of the desired entry.
-        entry -- an integer from 1 to 9 representing the value to be inserted at the given position
+        row -- an integer from 0 to GRID_SIZE-1 representing the row of the desired entry.
+        col -- an integer from 0 to GRID_SIZE-1 representing the column of the desired entry.
+        entry -- an integer from 1 to GRID_SIZE representing the value to be inserted at the given position
         """
-        if entry < 1 or entry > 9:
-            raise ValueError("Entry in sudoku must be between 1 and 9.")
-        elif row < 0 or row > 8:
-            raise ValueError("Row value must be between 0 and 8")
-        elif col < 0 or col > 8:
-            raise ValueError("Column value must be between 0 and 8")
+        if entry < 1 or entry > GRID_SIZE:
+            raise ValueError(f"Entry in sudoku must be between 1 and {GRID_SIZE}.")
+        elif row < 0 or row >= GRID_SIZE:
+            raise ValueError(f"Row value must be between 0 and {GRID_SIZE - 1}")
+        elif col < 0 or col >= GRID_SIZE:
+            raise ValueError(f"Column value must be between 0 and {GRID_SIZE - 1}")
         elif len(self.get_possible_values(row, col)) == 1 and self.get_possible_values(row, col)[0] == entry:
             self.sudoku_state[row][col] = entry
         else:
@@ -77,24 +77,26 @@ class Sudoku:
             self.possible_values[row][col] = [entry]
 
             neighbors = self.get_neighbors(row, col)
+            '''
             arcs = []
             for n in neighbors:
                 arcs.append(((row, col), n))
             search.arc_consistency_3(self, arcs)
-
+            '''
     def get_entry(self, row, col):
         """
         Gets the entry at the given row and column values from this sudoku problem.
 
         Keyword arguments:
-        row -- an integer from 0 to 8 representing the row of the desired entry.
-        col -- an integer from 0 to 8 representing the column of the desired entry.
+        row -- an integer from 0 to GRID_SIZE-1 representing the row of the desired entry.
+        col -- an integer from 0 to GRID_SIZE-1 representing the column of the desired entry.
         """
-        if row < 0 or row > 8:
-            raise ValueError("Row value must be between 0 and 8")
-        elif col < 0 or col > 8:
-            raise ValueError("Column value must be between 0 and 8")
+        if row < 0 or row >= GRID_SIZE:
+            raise ValueError(f"Row value must be between 0 and {GRID_SIZE - 1}")
+        elif col < 0 or col >= GRID_SIZE:
+            raise ValueError(f"Column value must be between 0 and {GRID_SIZE - 1}")
         else:
+            return self.sudoku_state[row][col]
             return self.sudoku_state[row][col]
 
     def get_row(self, row):
@@ -102,10 +104,10 @@ class Sudoku:
         Gets the desired row from this sudoku problem.
 
         Keyword arguments:
-        row -- an integer from 0 to 8 representing the desired row.
+        row -- an integer from 0 to GRID_SIZE-1 representing the desired row.
         """
-        if row < 0 or row > 8:
-            raise ValueError("Row value must be between 0 and 8")
+        if row < 0 or row >= GRID_SIZE:
+            raise ValueError(f"Row value must be between 0 and {GRID_SIZE - 1}")
         else:
             return self.sudoku_state[row]
 
@@ -114,10 +116,10 @@ class Sudoku:
         Gets the desired column from this sudoku problem.
 
         Keyword arguments:
-        col -- an integer from 0 to 8 representing the desired column.
+        col -- an integer from 0 to GRID_SIZE-1 representing the desired column.
         """
-        if col < 0 or col > 8:
-            raise ValueError("Column value must be between 0 and 8")
+        if col < 0 or col >= GRID_SIZE:
+            raise ValueError(f"Column value must be between 0 and {GRID_SIZE - 1}")
         else:
             column = []
             for i, r in enumerate(self.sudoku_state):
@@ -126,33 +128,33 @@ class Sudoku:
 
     def get_square(self, square_row, square_col):
         """
-        Gets the 3x3 sub-square of this sudoku problem.
+        Gets the SUBGRID_SIZE x SUBGRID_SIZE sub-square of this sudoku problem.
 
         Keyword arguments:
-        square_row -- an integer from 0 to 2 representing the row of the desired sub-square.
-        square_col -- an integer from 0 to 2 representing the column of the desired sub-square.
+        square_row -- an integer from 0 to SUBGRID_SIZE-1 representing the row of the desired sub-square.
+        square_col -- an integer from 0 to SUBGRID_SIZE-1 representing the column of the desired sub-square.
         """
-        if square_row < 0 or square_row > 2:
-            raise ValueError("Square row value must be between 0 and 2")
-        elif square_col < 0 or square_col > 2:
-            raise ValueError("Square column value must be between 0 and 2")
+        if square_row < 0 or square_row >= SUBGRID_SIZE:
+            raise ValueError(f"Square row value must be between 0 and {SUBGRID_SIZE - 1}")
+        elif square_col < 0 or square_col >= SUBGRID_SIZE:
+            raise ValueError(f"Square column value must be between 0 and {SUBGRID_SIZE - 1}")
         else:
             square = []
-            initial_row_num = square_row * 3
-            initial_col_num = square_col * 3
+            initial_row_num = square_row * SUBGRID_SIZE
+            initial_col_num = square_col * SUBGRID_SIZE
 
-            for i in range(initial_row_num, initial_row_num + 3):
-                square.append(self.sudoku_state[i][initial_col_num:initial_col_num + 3])
+            for i in range(initial_row_num, initial_row_num + SUBGRID_SIZE):
+                square.append(self.sudoku_state[i][initial_col_num:initial_col_num + SUBGRID_SIZE])
 
             return square
 
     def get_square_as_list(self, square_row, square_col):
         """
-        Gets the 3x3 sub-square of this sudoku problem in the form of a single list.
+        Gets the SUBGRID_SIZE x SUBGRID_SIZE sub-square of this sudoku problem in the form of a single list.
 
         Keyword arguments:
-        square_row -- an integer from 0 to 2 representing the row of the desired sub-square.
-        square_col -- an integer from 0 to 2 representing the column of the desired sub-square.
+        square_row -- an integer from 0 to SUBGRID_SIZE-1 representing the row of the desired sub-square.
+        square_col -- an integer from 0 to SUBGRID_SIZE-1 representing the column of the desired sub-square.
         """
         square = self.get_square(square_row, square_col)
         square_list = []
@@ -178,19 +180,19 @@ class Sudoku:
         Determines if the current state is not in violation of any of the constraints of a sudoku puzzle.
         """
 
-        for i in range(0, 9):
-            for n in range(1, 10):
+        for i in range(0, GRID_SIZE):
+            for n in range(1, GRID_SIZE + 1):
                 if self.get_row(i).count(n) > 1 or self.get_col(i).count(n) > 1:
                     return False
 
-        for sr in range(0, 3):
-            for sc in range(0, 3):
-                for n in range(1, 10):
+        for sr in range(0, SUBGRID_SIZE):
+            for sc in range(0, SUBGRID_SIZE):
+                for n in range(1, GRID_SIZE + 1):
                     if self.get_square_as_list(sr, sc).count(n) > 1:
                         return False
 
-        for r in range(9):
-            for c in range(9):
+        for r in range(GRID_SIZE):
+            for c in range(GRID_SIZE):
                 if len(self.get_possible_values(r, c)) == 0:
                     return False
 
@@ -201,8 +203,8 @@ class Sudoku:
         Prints the state of this sudoku to the output.
         """
         sudoku_string = "\n"
-        for r in range(0, 9):
-            for c in range(0, 9):
+        for r in range(0, GRID_SIZE):
+            for c in range(0, GRID_SIZE):
                 sudoku_string += str(self.get_entry(r, c)) + " "
             sudoku_string += "\n"
         print(sudoku_string)
@@ -212,8 +214,8 @@ class Sudoku:
         Gets the possible values of the given position in the puzzle.
 
         Keyword arguments:
-        row -- an integer from 0 to 8 representing the row of the desired entry.
-        col -- an integer from 0 to 8 representing the column of the desired entry.
+        row -- an integer from 0 to GRID_SIZE-1 representing the row of the desired entry.
+        col -- an integer from 0 to GRID_SIZE-1 representing the column of the desired entry.
         """
         return self.possible_values[row][col]
 
@@ -222,9 +224,9 @@ class Sudoku:
         Sets the list of possible values for the given position to the given list of values.
 
         Keyword arguments:
-        row -- an integer from 0 to 8 representing the row of the desired entry.
-        col -- an integer from 0 to 8 representing the column of the desired entry.
-        vals -- a list of ints from 1 to 9 with no repeated values representing the possible values of this position.
+        row -- an integer from 0 to GRID_SIZE-1 representing the row of the desired entry.
+        col -- an integer from 0 to GRID_SIZE-1 representing the column of the desired entry.
+        vals -- a list of ints from 1 to GRID_SIZE with no repeated values representing the possible values of this position.
         """
         self.possible_values[row][col] = vals
 
@@ -233,22 +235,22 @@ class Sudoku:
         Gets a list of tuples representing all of the positions that interact with the given position.
 
         Keyword arguments:
-        row -- an integer from 0 to 8 representing the row of the desired entry.
-        col -- an integer from 0 to 8 representing the column of the desired entry.
+        row -- an integer from 0 to GRID_SIZE-1 representing the row of the desired entry.
+        col -- an integer from 0 to GRID_SIZE-1 representing the column of the desired entry.
         """
         neighbors = []
 
-        for i in range(9):
+        for i in range(GRID_SIZE):
             if i != row:
                 neighbors.append((i, col))
             if i != col:
                 neighbors.append((row, i))
 
-        sr = row // 3
-        sc = col // 3
+        sr = row // SUBGRID_SIZE
+        sc = col // SUBGRID_SIZE
 
-        for r in range(sr * 3, (sr * 3) + 3):
-            for c in range(sc * 3, (sc * 3) + 3):
+        for r in range(sr * SUBGRID_SIZE, (sr * SUBGRID_SIZE) + SUBGRID_SIZE):
+            for c in range(sc * SUBGRID_SIZE, (sc * SUBGRID_SIZE) + SUBGRID_SIZE):
                 if r != row or c != col:
                     pos = (r, c)
                     if pos not in neighbors:
